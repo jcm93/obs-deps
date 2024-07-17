@@ -21,7 +21,7 @@ jobs:
         run: |
           : Remove Stale Cache Entries
 
-          echo '::group::Processing master branch cache entries'
+          echo '::group::Processing ares branch cache entries'
           while IFS=";" read -r cache_id cache_name; do
             if [[ "${cache_name}" ]]; then
               result=true
@@ -35,7 +35,7 @@ jobs:
             fi
           done <<< \
           "$(gh api repos/${GITHUB_REPOSITORY}/actions/caches \
-            --jq '.actions_caches.[] | select(.ref|test("refs/heads/master")) | select(.key|test(".*-ccache-*")) | {id, key} | join(";")')"
+            --jq '.actions_caches.[] | select(.ref|test("refs/heads/ares")) | select(.key|test(".*-ccache-*")) | {id, key} | join(";")')"
 
 
           while IFS=";" read -r cache_id cache_name; do
@@ -51,7 +51,7 @@ jobs:
             fi
           done <<< \
           "$(gh api repos/${GITHUB_REPOSITORY}/actions/caches \
-            --jq '.actions_caches.[] | select(.ref|test("refs/heads/master")) | select(.key|test(".+-(qt6|ffmpeg|deps)-.+")) | {id, key} | join(";")')"
+            --jq '.actions_caches.[] | select(.ref|test("refs/heads/ares")) | select(.key|test(".+-(qt6|ffmpeg|deps)-.+")) | {id, key} | join(";")')"
           echo '::endgroup::'
 
           echo '::group::Processing pull request cache entries'
@@ -70,96 +70,8 @@ jobs:
             fi
           done <<< \
             "$(gh api 'repos/${GITHUB_REPOSITORY}/actions/caches?per_page=100' \
-              --jq '.actions_caches.[] | select(.ref|test("refs/heads/master")|not) | {id, key, ref} | join(";")' &> /dev/null)"
+              --jq '.actions_caches.[] | select(.ref|test("refs/heads/ares")|not) | {id, key, ref} | join(";")' &> /dev/null)"
           echo '::endgroup::'
-
-  ffmpeg-macos-build:
-    name: Build FFmpeg for macOS
-    runs-on: macos-14
-    needs: cache-cleanup
-    strategy:
-      fail-fast: true
-      matrix:
-        target: [macos-arm64, macos-x86_64]
-        include:
-          - target: macos-arm64
-            config: Release
-            type: static
-          - target: macos-x86_64
-            config: Release
-            type: static
-    defaults:
-      run:
-        shell: zsh --no-rcs --errexit --pipefail {0}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        id: setup
-        run: |
-          : Setup Environment
-          print '::group::Enable Xcode 15.2'
-          sudo xcode-select --switch /Applications/Xcode_15.2.app/Contents/Developer
-          print '::endgroup::'
-
-          local -a to_remove=()
-
-          for formula (llvm gcc postgresql openjdk sox libsndfile flac libvorbis opusfile \
-            libogg composer php gd freetype fontconfig webp libpng lame libtiff opus kotlin \
-            sbt libxft libxcb) {
-            if [[ -d /usr/local/opt/${formula} ]] to_remove+=(${formula})
-          }
-
-          if (( #to_remove )) brew uninstall --ignore-dependencies ${to_remove}
-
-          local -r date_string=$(date +"%Y-%m-%d")
-          print "ccacheDate=${date_string}" >> $GITHUB_OUTPUT
-
-      - name: Restore Compilation Cache
-        id: ccache-cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.ccache
-          key: ${{ matrix.target }}-ccache-ffmpeg-${{ steps.setup.outputs.ccacheDate }}
-          restore-keys: |
-            ${{ matrix.target }}-ccache-ffmpeg-
-
-      - name: Build FFmpeg
-        uses: ./.github/actions/build-ffmpeg
-        with:
-          target: ${{ matrix.target }}
-          type: ${{ matrix.type }}
-          config: ${{ matrix.config }}
-
-  ffmpeg-windows-build:
-    name: Build FFmpeg for Windows
-    runs-on: windows-2022
-    needs: cache-cleanup
-    strategy:
-      fail-fast: true
-      matrix:
-        target: [x64, x86]
-        include:
-          - target: x64
-            config: Release
-            type: static
-          - target: x86
-            config: Release
-            type: static
-    defaults:
-      run:
-        shell: pwsh
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build FFmpeg
-        uses: ./.github/actions/build-ffmpeg
-        with:
-          target: ${{ matrix.target }}
-          type: ${{ matrix.type }}
-          config: ${{ matrix.config }}
 
   macos-build:
     name: Build macOS Dependencies
@@ -289,69 +201,4 @@ jobs:
         with:
           target: ${{ matrix.target }}
           type: ${{ matrix.type }}
-          config: ${{ matrix.config }}
-
-  macos-qt6-build:
-    name: Build Qt6 (macOS)
-    runs-on: macos-14
-    needs: cache-cleanup
-    defaults:
-      run:
-        shell: zsh --no-rcs --errexit --pipefail {0}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Environment
-        id: setup
-        run: |
-          : Setup Environment
-          print '::group::Enable Xcode 15.2'
-          sudo xcode-select --switch /Applications/Xcode_15.2.app/Contents/Developer
-          print '::endgroup::'
-
-          local -a to_remove=()
-
-          for formula (llvm gcc) {
-            if [[ -d /usr/local/opt/"${formula}" ]] to_remove+=(${formula})
-          }
-
-          if (( #to_remove )) brew uninstall --ignore-dependencies ${to_remove}
-
-          local -r date_string=$(date +"%Y-%m-%d")
-          print "ccacheDate=${date_string}" >> $GITHUB_OUTPUT
-
-      - name: Restore Compilation Cache
-        id: ccache-cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.ccache
-          key: macos-universal-ccache-qt6-${{ steps.setup.outputs.ccacheDate }}
-          restore-keys: |
-            macos-universal-ccache-qt6-
-
-      - name: Build macOS Qt
-        uses: ./.github/actions/build-qt
-        with:
-          target: macos-universal
-          config: Release
-
-  windows-qt6-build:
-    name: Build Qt6 (Windows)
-    runs-on: windows-2022
-    needs: cache-cleanup
-    strategy:
-      fail-fast: true
-      matrix:
-        target: [x64, x86]
-        config: [RelWithDebInfo, Debug]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build Windows Qt
-        uses: ./.github/actions/build-qt
-        with:
-          target: ${{ matrix.target }}
           config: ${{ matrix.config }}
