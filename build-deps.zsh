@@ -85,7 +85,7 @@ package() {
   if [[ ${PACKAGE_NAME} != 'qt'* ]] {
     log_status "Cleanup unnecessary files"
 
-    rm -rf -- lib/^(*.dylib|*.a|*.so*|*.lib|*.framework|*.dSYM|cmake)(N)
+    rm -rf -- lib/^(*.dylib|*.a|*.so*|*.lib|*.framework|*.dSYM|cmake|slang-shaders)(N)
     rm -rf -- lib/(libpcre*|libpng*|libfreetype.a)(N)
     rm -rf -- bin/^(*.exe|*.dll|*.pdb|swig)(N)
 
@@ -112,8 +112,8 @@ package() {
     rm -rf -- ${dsym_files}
   }
 
-  mkdir -p share/obs-deps
-  echo "${current_date}" >! share/obs-deps/VERSION
+  mkdir -p share/ares-deps
+  echo "${current_date}" >! share/ares-deps/VERSION
 
   log_status "Create archive ${filename}"
   local -a _tarflags=()

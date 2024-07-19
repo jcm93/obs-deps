@@ -16,10 +16,10 @@ setup() {
 clean() {
   cd "${dir}"
 
-  if [[ ${clean_build} -gt 0 && -d "build" ]] {
+  if [[ ${clean_build} -gt 0 && -d build_${arch} ]] {
     log_info "Clean build directory (%F{3}${target}%f)"
 
-    rm -rf "build"
+    rm -rf build_${arch}
   }
 }
 
@@ -51,5 +51,10 @@ install() {
 
   cd "${dir}"
   cp -Rp target/${libra_profile}/librashader.dylib "${target_config[output_dir]}"/lib
+  ditto include/ "${target_config[output_dir]}"/include/librashader
+  
+  local -a dylib_files=(${target_config[output_dir]}/lib/librashader*.dylib(.))
+  autoload -Uz fix_rpaths
+  fix_rpaths ${dylib_files}
 }
 

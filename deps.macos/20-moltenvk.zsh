@@ -15,10 +15,10 @@ setup() {
 clean() {
   cd "${dir}"
 
-  if [[ ${clean_build} -gt 0 && -d "build" ]] {
+  if [[ ${clean_build} -gt 0 && -d build_${arch} ]] {
     log_info "Clean build directory (%F{3}${target}%f)"
 
-    rm -rf "build"
+    rm -rf build_${arch}
   }
 }
 
@@ -40,6 +40,7 @@ install() {
   if [[ -f "Package/${config}/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib.dSYM" ]] {
     cp -Rp Package/${config}/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib.dSYM "${target_config[output_dir]}"/lib
   }
+  mkdir -p "${target_config[output_dir]}"/include/MoltenVK
 }
 
 

@@ -73,7 +73,13 @@ function Install {
     $Items = @(
         @{
             Path = "target/${Libra_profile}/librashader.h"
-            Destination = "$($ConfigData.OutputPath)/include/librashader.h"
+            Destination = "$($ConfigData.OutputPath)/include/librashader/librashader.h"
+            Force = $true
+            Recurse = $true
+        }
+        @{
+            Path = "target/${Libra_profile}/librashader_ld.h"
+            Destination = "$($ConfigData.OutputPath)/include/librashader/librashader_ld.h"
             Force = $true
             Recurse = $true
         }
@@ -85,7 +91,7 @@ function Install {
         }
         @{
             Path = "target/${Libra_profile}/librashader.d"
-            Destination = "$($ConfigData.OutputPath)/include/librashader.d"
+            Destination = "$($ConfigData.OutputPath)/include/librashader/librashader.d"
             Force = $true
             Recurse = $true
         }

@@ -15,10 +15,10 @@ setup() {
 clean() {
   cd "${dir}"
 
-  if [[ ${clean_build} -gt 0 && -d "build" ]] {
+  if [[ ${clean_build} -gt 0 && -d build_${arch} ]] {
     log_info "Clean build directory (%F{3}${target}%f)"
 
-    rm -rf "build"
+    rm -rf build_${arch}
   }
 }
 
@@ -34,8 +34,11 @@ install() {
   log_info "Install (%F{3}${target}%f)"
 
   cd "${dir}"
-  mkdir -p "${target_config[output_dir]}"/lib/slang-shaders/
-  cp -Rp . "${target_config[output_dir]}"/lib/slang-shaders/
+  rm -rf .git
+  rm -f .gitlab-ci.yml
+  rm -f configure
+  rm -f Makefile
+  ditto . "${target_config[output_dir]}"/lib/slang-shaders
 }
 
 

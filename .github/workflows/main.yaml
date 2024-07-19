@@ -224,7 +224,7 @@ jobs:
   make-release:
     name: Create and upload release
     runs-on: ubuntu-22.04
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: github.event_name == 'push'
     needs: [macos-package-universal, windows-build]
     defaults:
       run:
@@ -259,7 +259,6 @@ jobs:
             zip -r windows-deps-${{ steps.metadata.outputs.version }}-${arch}.zip -- *
             mv windows-deps-${{ steps.metadata.outputs.version }}-${arch}.zip ${GITHUB_WORKSPACE}
 
-            mv ${GITHUB_WORKSPACE}/qt6-windows-${arch}-!(*-@(Debug|RelWithDebInfo|Release|MinSizeRel))/*.zip ${GITHUB_WORKSPACE}
             popd > /dev/null
           done
 
@@ -287,8 +286,6 @@ jobs:
             popd > /dev/null
           done
 
-          mv ${GITHUB_WORKSPACE}/qt6-macos-*/*.tar.xz ${{ github.workspace }}
-
       - name: Generate Checksums
         run: |
           : Generate Checksums
@@ -305,7 +302,7 @@ jobs:
           draft: false
           prerelease: false
           tag_name: ${{ steps.metadata.outputs.version }}
-          name: OBS Deps Build ${{ steps.metadata.outputs.version }}
+          name: ares Deps Build ${{ steps.metadata.outputs.version }}
           body_path: ${{ github.workspace }}/CHECKSUMS.txt
           files: |
             ${{ github.workspace }}/windows-*-x64*.zip
