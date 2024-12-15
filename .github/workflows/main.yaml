@@ -2,8 +2,6 @@ name: build_deps
 
 on:
   push:
-    branches:
-      - master
     tags:
       - '20[2-9][0-9]-[0-9][0-9]-[0-9][0-9]'
   pull_request:
@@ -678,6 +676,6 @@ jobs:
           files: |
             ${{ github.workspace }}/windows-*-x64*.zip
             ${{ github.workspace }}/windows-*-x86*.zip
-            ${{ github.workspace }}/macos-*-arm64.tar.xz
-            ${{ github.workspace }}/macos-*-x86_64.tar.xz
-            ${{ github.workspace }}/macos-*-universal.tar.xz
+            ${{ github.workspace }}/macos-*-arm64?(-dSYMs).tar.xz
+            ${{ github.workspace }}/macos-*-x86_64?(-dSYMs).tar.xz
+            ${{ github.workspace }}/macos-*-universal?(-dSYMs).tar.xz
