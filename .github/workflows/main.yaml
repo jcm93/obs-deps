@@ -636,6 +636,8 @@ jobs:
         run: |
           : Package macOS dependencies
           shopt -s extglob
+          
+          ls ${GITHUB_WORKSPACE}/**
 
           for arch in arm64 x86_64 universal; do
             _temp=$(mktemp -d)
@@ -651,6 +653,33 @@ jobs:
 
             XZ_OPT=-T0 tar -cvJf macos-deps-${{ steps.metadata.outputs.version }}-${arch}.tar.xz -- *
             mv macos-deps-${{ steps.metadata.outputs.version }}-${arch}.tar.xz ${GITHUB_WORKSPACE}
+
+            popd > /dev/null
+          done
+          
+      - name: Package macOS debug symbols
+        run: |
+          : Package macOS dependencies
+          shopt -s extglob
+          
+          ls ${GITHUB_WORKSPACE}/**
+          
+          date_string=$(date +"%Y-%m-%d")
+          
+          for arch in arm64 x86_64 universal; do
+            _temp=$(mktemp -d)
+            pushd "${_temp}" > /dev/null
+
+            for artifact in ${GITHUB_WORKSPACE}/**/macos-@(deps|ffmpeg)-${date_string}-${arch}-dSYMs.*; do
+              case ${artifact} in
+                *.zip) unzip -o ${artifact} > /dev/null ;;
+                *.tar.xz) XZ_OPT=-T0 tar -xvJf ${artifact} ;;
+                *.tar.gz) tar -xvzf ${artifact} ;;
+              esac
+            done
+
+            XZ_OPT=-T0 tar -cvJf macos-deps-${{ steps.metadata.outputs.version }}-${arch}-dSYMs.tar.xz -- *.dSYM
+            mv macos-deps-${{ steps.metadata.outputs.version }}-${arch}-dSYMs.tar.xz ${GITHUB_WORKSPACE}
 
             popd > /dev/null
           done
